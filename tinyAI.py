@@ -56,11 +56,11 @@ def run_network(network, input_data, answer):
     vertical_weight = network.output_layer[1].weight
 
     if answer == "horizontal":
-        if horizontal_weight - vertical_weight > 0.05:
+        if horizontal_weight - vertical_weight > 0.01:
             return 1.0
         else:
             return 0.0
-    if vertical_weight - horizontal_weight > 0.05:
+    if vertical_weight - horizontal_weight > 0.01:
         return 1.0
     else:
         return 0.0
@@ -134,7 +134,7 @@ for node in nodes:
 solution = []
 best_score = 0
 #training
-while best_score < 4:
+while best_score < 8:
     network.reset()
     #randomly assign weights to links
     for link in links:
@@ -146,12 +146,19 @@ while best_score < 4:
     score += run_network(network, data[1], "horizontal")
     score += run_network(network, data[2], "vertical")
     score += run_network(network, data[3], "vertical")
+    # run again with a scrambled order
+    score += run_network(network, data[1], "horizontal")
+    score += run_network(network, data[0], "horizontal")
+    score += run_network(network, data[3], "vertical")
+    score += run_network(network, data[2], "vertical")
 
     if best_score < score:
         best_score = score
         solution.clear()
         for link in links:
             solution.append((link, link.weight))
+    
+    print(best_score)
 
 for sol in solution:
     link = sol[0]
