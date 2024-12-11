@@ -5,13 +5,13 @@ class Node:
     def __init__(self, id):
         self.id = id
         self.links = list()
-        self.weight = 0.0
+        self.weight = 0.01
 
 class Link:
     def __init__(self, start, end):
         self.start = start
         self.end = end
-        self.weight = 0.0
+        self.weight = 0.01
 
 class Network:
     def __init__(self):
@@ -31,14 +31,11 @@ class Network:
         self.reset_weights(self.output_layer)
 
 def normalize(nodes):
-    max = 0
+    max_weight = max(node.weight for node in nodes)
+    if max_weight == 0:
+        return
     for node in nodes:
-        if max < node.weight:
-            max = node.weight
-        if max == 0:
-            return
-        for node in nodes:
-            node.weight /= max
+        node.weight /= max_weight
 
 def run_network(network, input_data, answer):
     for i in range(4):
@@ -46,19 +43,24 @@ def run_network(network, input_data, answer):
     for node in network.input_layer:
         for link in node.links:
             link.end.weight += node.weight * link.weight
-            normalize(network.hidden_layer)
+
+    normalize(network.hidden_layer)
+
     for node in network.hidden_layer:
         for link in node.links:
             link.end.weight += node.weight * link.weight
-            normalize(network.output_layer)
-            horizontal_weight = network.output_layer[0].weight
-            vertical_weight = network.output_layer[1].weight
+        
+    normalize(network.output_layer)
+
+    horizontal_weight = network.output_layer[0].weight
+    vertical_weight = network.output_layer[1].weight
+
     if answer == "horizontal":
-        if horizontal_weight - vertical_weight > 0.1:
+        if horizontal_weight - vertical_weight > 0.05:
             return 1.0
         else:
             return 0.0
-    if vertical_weight - horizontal_weight > 0.1:
+    if vertical_weight - horizontal_weight > 0.05:
         return 1.0
     else:
         return 0.0
@@ -156,3 +158,17 @@ for sol in solution:
     weight = sol[1]
     # print the two nodes each link connects and its end weight
     print(f'{link.start.id},{link.end.id},{weight:0.2f},')
+
+while True:
+    user_input = input("upper-left upper-right lower-left lower-right ")
+    type = input("Horizontal or vertical? ")
+    input_mapped = map(int, user_input.split())
+    data_to_use = []
+
+    for i in input_mapped:
+        data_to_use.append(i)
+    
+    if run_network(network, data_to_use, type) == 1.0:
+        print("AI got it correct!")
+    else:
+        print("AI is wrong!")
